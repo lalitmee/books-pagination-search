@@ -1,6 +1,9 @@
 import "./App.css";
 import { useEffect, useState } from "react";
 
+import BooksList from "./components/BooksList";
+import useDebounce from "./hooks/useDebounce";
+
 const url = "https://openlibrary.org/search.json";
 
 const limit = 20;
@@ -8,11 +11,13 @@ const limit = 20;
 function App() {
   const [books, setBooks] = useState([]);
   const [searchString, setSearchString] = useState("");
-  const [debouncedSearchString, setDebouncedSearchString] = useState("");
   const [offset, setOffset] = useState(0);
-  const [showAuthor, setShowAuthor] = useState(false);
+  const [isLoading, setIsLoading] = useState(false);
+
+  const { debouncedSearchString } = useDebounce(searchString);
 
   const fetchBooks = async (query) => {
+    setIsLoading(true);
     try {
       const response = await fetch(
         `${url}?q=${query}&offset=${offset}&limit=${limit}`,
@@ -24,17 +29,12 @@ function App() {
         }
         return docs;
       });
+      setIsLoading(false);
     } catch (error) {
       console.error(error);
+      setIsLoading(false);
     }
   };
-
-  useEffect(() => {
-    const delayInputTimeoutId = setTimeout(() => {
-      setDebouncedSearchString(searchString);
-    }, 500);
-    return () => clearTimeout(delayInputTimeoutId);
-  }, [searchString]);
 
   useEffect(() => {
     if (debouncedSearchString) {
@@ -49,50 +49,14 @@ function App() {
     setSearchString(e.target.value);
   };
 
-  // need to work on this
-  const onHover = () => {
-    setShowAuthor(true);
-  };
-
   return (
     <div>
-      <input className="searchBox" onChange={onChange} />
+      <form className="formContainer">
+        <input className="searchInput" onChange={onChange} />
+        <button className="searchButton">Search</button>
+      </form>
 
-      <div className="booksList">
-        {books.map((book) => {
-          const { isbn, oclc, lccn, id, title } = book;
-          let key = "";
-          let value = "";
-          if (isbn && isbn.length > 0) {
-            key = "isbn";
-            value = isbn[0];
-          } else if (oclc && oclc.length > 0) {
-            key = "oclc";
-            value = oclc[0];
-          } else if (lccn && lccn.length > 0) {
-            key = "lccn";
-            value = lccn[0];
-          }
-          return (
-            <div key={id} className="bookContainer" onMouseEnter={onHover}>
-              <img
-                className="bookImage"
-                src={`https://covers.openlibrary.org/b/${key}/${value}-S.jpg`}
-                alt={title}
-              />
-              {showAuthor && (
-                <div className="bookAuthor">
-                  <img
-                    className="bookAuthor"
-                    src={`https://covers.openlibrary.org/a/${key}/${value}-$size.jpg`}
-                    alt={title}
-                  />
-                </div>
-              )}
-            </div>
-          );
-        })}
-      </div>
+      {isLoading ? "Loading..." : <BooksList books={books} />}
     </div>
   );
 }
