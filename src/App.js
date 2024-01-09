@@ -1,8 +1,9 @@
 import "./App.css";
-import { useCallback, useEffect, useState } from "react";
+import { useEffect, useState } from "react";
 
 import BooksList from "./components/BooksList";
 import Pagination from "./components/Pagination";
+import Loader from "./components/Loader";
 import useDebounce from "./hooks/useDebounce";
 import useBooks from "./hooks/useBooks";
 
@@ -20,18 +21,26 @@ function App() {
     page,
   });
 
+  useEffect(() => {
+    if (!debouncedSearchString) {
+      setPage(0);
+    } else {
+      setPage(1);
+    }
+  }, [debouncedSearchString]);
+
   const onChange = (e) => {
     setSearchString(e.target.value);
   };
 
   return (
-    <div>
+    <>
       <form className="formContainer">
         <input className="searchInput" onChange={onChange} />
         <button className="searchButton">Search</button>
       </form>
 
-      {isLoading ? "Loading..." : <BooksList books={books} />}
+      {isLoading ? <Loader /> : <BooksList books={books} />}
 
       <Pagination
         className="paginationBar"
@@ -40,7 +49,7 @@ function App() {
         onPageChange={setPage}
         pageSize={limit}
       />
-    </div>
+    </>
   );
 }
 
