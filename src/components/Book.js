@@ -1,5 +1,7 @@
 import React, { useState } from "react";
 
+import BookImage from "./BookImage";
+
 function Book({ book }) {
   const [showAuthor, setShowAuthor] = useState(false);
 
@@ -25,9 +27,8 @@ function Book({ book }) {
   return (
     <div key={id} className="bookContainer" onMouseEnter={onHover}>
       <div className="bookImageContainer">
-        <img
-          className="bookImage"
-          src={`https://covers.openlibrary.org/b/${key}/${value}-M.jpg`}
+        <BookImage
+          src={`https://covers.openlibrary.org/b/${key}/${value}-S.jpg`}
           alt={title}
         />
       </div>
